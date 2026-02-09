@@ -23,19 +23,21 @@
                             <div class="md:col-span-1">
                                 <label class="block mb-2 text-sm font-medium text-gray-900">Imagen del Recurso</label>
                                 
-                                <div class="flex items-center justify-center w-full mb-4 relative group">
+                                <!-- Contenedor de la imagen: Altura fija y fondo gris para ajuste visual -->
+                                <div class="flex items-center justify-center w-full mb-4 bg-gray-100 rounded-lg border border-gray-300 overflow-hidden relative" style="height: 200px;">
+                                    
                                     <!-- Imagen Actual o Nueva Previsualización -->
+                                    <!-- Usamos object-contain para que se vea completa (horizontal o vertical) -->
                                     <img id="preview-image" 
                                          src="{{ $resource->image_path ? asset('storage/' . $resource->image_path) : '' }}" 
-                                         class="{{ $resource->image_path ? '' : 'hidden' }} w-full h-48 object-cover rounded-lg border border-gray-200" 
+                                         class="{{ $resource->image_path ? '' : 'hidden' }} w-full h-full object-contain" 
                                          alt="Vista previa">
                                     
                                     <!-- Placeholder (Solo si no hay imagen) -->
-                                    <div id="placeholder-image" class="{{ $resource->image_path ? 'hidden' : 'flex' }} flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
-                                        <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                            <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                        </svg>
-                                        <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Cambiar imagen</span></p>
+                                    <div id="placeholder-image" class="{{ $resource->image_path ? 'hidden' : 'flex' }} flex-col items-center justify-center w-full h-full text-center p-4">
+                                        <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                        <p class="text-xs text-gray-500 font-semibold">Cambiar imagen</p>
+                                        <p class="text-[10px] text-gray-400 mt-1">Formato horizontal recomendado</p>
                                     </div>
                                 </div>
 
@@ -51,9 +53,9 @@
                                 <div>
                                     <label for="type" class="block mb-2 text-sm font-medium text-gray-900">Tipo de Recurso</label>
                                     <select id="type" name="type" x-model="type" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
-                                        <option value="equipo">Equipo</option>
-                                        <option value="laboratorio">Laboratorio</option>
-                                        <option value="insumo">Insumo</option>
+                                        <option value="equipo" {{ old('type', $resource->type) == 'equipo' ? 'selected' : '' }}>Equipo</option>
+                                        <option value="laboratorio" {{ old('type', $resource->type) == 'laboratorio' ? 'selected' : '' }}>Laboratorio</option>
+                                        <option value="insumo" {{ old('type', $resource->type) == 'insumo' ? 'selected' : '' }}>Insumo</option>
                                     </select>
                                 </div>
 
@@ -89,6 +91,11 @@
                                         <input type="number" name="total_stock" id="total_stock" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" value="{{ old('total_stock', $resource->total_stock) }}" min="1">
                                         <x-input-error :messages="$errors->get('total_stock')" class="mt-2" />
                                     </div>
+                                    
+                                    <!-- Input Oculto para Laboratorio -->
+                                    <template x-if="type === 'laboratorio'">
+                                        <input type="hidden" name="total_stock" value="1">
+                                    </template>
 
                                     <div>
                                         <label for="status" class="block mb-2 text-sm font-medium text-gray-900">Estado</label>
@@ -106,11 +113,6 @@
                                     <textarea id="description" name="description" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500">{{ old('description', $resource->description) }}</textarea>
                                 </div>
 
-                                <!-- Input Oculto para Laboratorio -->
-                                <template x-if="type === 'laboratorio'">
-                                    <input type="hidden" name="total_stock" value="1">
-                                </template>
-
                             </div>
                         </div>
                     </form>
@@ -118,7 +120,7 @@
                     <!-- BARRA DE ACCIONES (Separada del formulario principal) -->
                     <div class="flex flex-col-reverse md:flex-row justify-between items-center pt-6 mt-6 border-t border-gray-100 gap-4">
                         
-                        <!-- BOTÓN DE ELIMINAR (FORMULARIO INDEPENDIENTE) -->
+                        <!-- BOTÓN DE ELIMINAR (DAR DE BAJA) -->
                         <form action="{{ route('admin.resources.destroy', $resource->id) }}" method="POST" onsubmit="return confirm('¿Estás seguro de que quieres dar de baja este recurso? Esta acción borrará el recurso y su historial de préstamos asociados de forma permanente.');">
                             @csrf
                             @method('DELETE')
@@ -145,7 +147,7 @@
         </div>
     </div>
 
-    <!-- Script para previsualizar imagen -->
+    <!-- Script para previsualizar imagen (Funciona igual) -->
     <script>
         function previewImage(event) {
             const reader = new FileReader();
@@ -155,7 +157,7 @@
                 output.src = reader.result;
                 output.classList.remove('hidden');
                 placeholder.classList.add('hidden');
-                placeholder.classList.remove('flex');
+                placeholder.classList.remove('flex'); // Importante para quitar el flex del placeholder
             };
             if(event.target.files[0]) {
                 reader.readAsDataURL(event.target.files[0]);

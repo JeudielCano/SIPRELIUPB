@@ -16,7 +16,7 @@ class ExternalLoanController extends Controller
     /**
      * Muestra el formulario de solicitud externa.
      */
-    public function create()
+public function create()
     {
         $activityTypes = ActivityType::all();
         $subjects = Subject::all();
@@ -31,7 +31,7 @@ class ExternalLoanController extends Controller
 
         $resources = $query->get();
 
-        // Filtro de stock real (igual que en préstamo normal)
+        // Filtro de stock real
         $resources = $resources->map(function ($resource) {
             $reservedCount = LoanItem::where('resource_id', $resource->id)
                 ->whereHas('loanRequest', function ($q) {
@@ -39,9 +39,17 @@ class ExternalLoanController extends Controller
                 })
                 ->sum('quantity');
             
+            // Calculamos el stock real
             $resource->total_stock = max(0, $resource->total_stock - $reservedCount);
+            
             return $resource;
-        })->filter(fn($r) => $r->total_stock > 0)->values();
+        }); 
+        // CORRECCIÓN AQUÍ: 
+        // Eliminé "->filter(fn($r) => $r->total_stock > 0)"
+        // Ahora pasamos TODOS los recursos, incluso si el stock es 0.
+        // Solo agregamos ->values() para reordenar los índices del array si fuera necesario.
+        
+        $resources = $resources->values(); 
 
         return view('loans.external', compact('activityTypes', 'subjects', 'resources'));
     }

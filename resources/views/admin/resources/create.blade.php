@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Registrar Nuevo Recurso') }}
+            {{ __('Dar de Alta Nuevo Recurso') }}
         </h2>
     </x-slot>
 
@@ -14,9 +14,9 @@
                     <form action="{{ route('admin.resources.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
                         @csrf
 
-                        <!-- 1. SELECTOR DE TIPO (Define qué campos se muestran) -->
+                        <!-- 1. SELECTOR DE TIPO -->
                         <div class="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
-                            <label for="type" class="block mb-2 text-lg font-bold text-blue-900">¿Qué tipo de recurso vas a registrar?</label>
+                            <label for="type" class="block mb-2 text-lg font-bold text-blue-900">¿Qué tipo de recurso vas a dar de alta?</label>
                             <select id="type" name="type" x-model="type" class="bg-white border border-blue-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                 <option value="" disabled selected>-- Selecciona una opción --</option>
                                 <option value="equipo">Equipo (Cómputo, Audiovisual, Herramienta)</option>
@@ -25,7 +25,7 @@
                             </select>
                         </div>
 
-                        <!-- CAMPOS DINÁMICOS (Solo se muestran si se ha seleccionado un tipo) -->
+                        <!-- CAMPOS DINÁMICOS -->
                         <div x-show="type !== ''" x-transition.opacity class="space-y-6">
                             
                             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -34,15 +34,17 @@
                                 <div class="md:col-span-1">
                                     <label class="block mb-2 text-sm font-medium text-gray-900">Imagen del Recurso</label>
                                     
-                                    <div class="flex items-center justify-center w-full mb-4">
-                                        <img id="preview-image" class="hidden w-full h-48 object-cover rounded-lg border border-gray-200" alt="Vista previa">
+                                    <!-- Contenedor de la imagen: Altura fija y fondo gris para ajuste visual -->
+                                    <div class="flex items-center justify-center w-full mb-4 bg-gray-100 rounded-lg border border-gray-300 overflow-hidden relative" style="height: 200px;">
                                         
-                                        <div id="placeholder-image" class="flex flex-col items-center justify-center w-full h-48 border-2 border-gray-300 border-dashed rounded-lg bg-gray-50">
-                                            <svg class="w-8 h-8 mb-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 16">
-                                                <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 13h3a3 3 0 0 0 0-6h-.025A5.56 5.56 0 0 0 16 6.5 5.5 5.5 0 0 0 5.207 5.021C5.137 5.017 5.071 5 5 5a4 4 0 0 0 0 8h2.167M10 15V6m0 0L8 8m2-2 2 2"/>
-                                            </svg>
-                                            <p class="mb-2 text-sm text-gray-500"><span class="font-semibold">Subir imagen</span></p>
-                                            <p class="text-xs text-gray-500">PNG, JPG (MAX. 2MB)</p>
+                                        <!-- Imagen Previa: Se ajusta automáticamente con object-contain -->
+                                        <img id="preview-image" class="hidden w-full h-full object-contain" alt="Vista previa">
+                                        
+                                        <!-- Placeholder (Instrucciones) -->
+                                        <div id="placeholder-image" class="flex flex-col items-center justify-center p-4 text-center">
+                                            <svg class="w-8 h-8 mb-2 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                                            <p class="text-xs text-gray-500 font-semibold">Subir imagen</p>
+                                            <p class="text-[10px] text-gray-400 mt-1">Formato horizontal recomendado</p>
                                         </div>
                                     </div>
 
@@ -71,7 +73,7 @@
                                         </div>
                                     </div>
 
-                                    <!-- Fila 2: Nombre (Etiqueta Dinámica) -->
+                                    <!-- Fila 2: Nombre -->
                                     <div>
                                         <label for="name" class="block mb-2 text-sm font-medium text-gray-900">
                                             <span x-show="type == 'equipo'">Nombre del Equipo</span>
@@ -83,10 +85,9 @@
                                         <x-input-error :messages="$errors->get('name')" class="mt-2" />
                                     </div>
 
-                                    <!-- Fila 3: Cantidad (Oculto para Laboratorio) -->
+                                    <!-- Fila 3: Cantidad -->
                                     <div x-show="type !== 'laboratorio'">
                                         <label for="total_stock" class="block mb-2 text-sm font-medium text-gray-900">Cantidad</label>
-                                        <!-- Si es laboratorio, forzamos valor 1 con JS o backend, visualmente el input es para equipos/insumos -->
                                         <input type="number" name="total_stock" id="total_stock" 
                                                class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" 
                                                value="1" min="1" 
@@ -94,12 +95,12 @@
                                         <x-input-error :messages="$errors->get('total_stock')" class="mt-2" />
                                     </div>
                                     
-                                    <!-- Input Oculto para Laboratorio (Stock siempre es 1) -->
+                                    <!-- Input Oculto para Laboratorio -->
                                     <template x-if="type === 'laboratorio'">
                                         <input type="hidden" name="total_stock" value="1">
                                     </template>
 
-                                    <!-- Fila 4: Detalles/Descripción -->
+                                    <!-- Fila 4: Descripción -->
                                     <div>
                                         <label for="description" class="block mb-2 text-sm font-medium text-gray-900">
                                             <span x-show="type == 'equipo'">Detalles del Equipo</span>
@@ -110,7 +111,6 @@
                                         <x-input-error :messages="$errors->get('description')" class="mt-2" />
                                     </div>
 
-                                    <!-- Campo Estado (Oculto, por defecto disponible) -->
                                     <input type="hidden" name="status" value="disponible">
 
                                 </div>
@@ -125,7 +125,7 @@
                                     Dar de Alta Recurso
                                 </button>
                             </div>
-                        </div> <!-- Fin x-show -->
+                        </div>
 
                     </form>
                 </div>
@@ -133,7 +133,7 @@
         </div>
     </div>
 
-    <!-- Script para previsualizar imagen -->
+    <!-- Script JS para previsualizar imagen -->
     <script>
         function previewImage(event) {
             const reader = new FileReader();

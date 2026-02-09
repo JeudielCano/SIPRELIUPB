@@ -26,7 +26,7 @@
 
                     <!-- Contenido Texto -->
                     <div class="absolute inset-0 flex flex-col justify-center px-10 md:px-20 text-white">
-                        <p class="text-blue-400 font-bold tracking-widest uppercase text-sm mb-4">Sistema de Gestión SIPRELI</p>
+                        <p class="text-blue-400 font-bold tracking-widest uppercase text-sm mb-4">Sistema de prestamos en linea SIPRELI</p>
                         
                         <h1 class="text-5xl md:text-6xl font-extrabold mb-6 leading-tight">
                             Bienvenido, <br>

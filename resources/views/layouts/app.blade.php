@@ -7,9 +7,9 @@
 
         <title>{{ config('app.name', 'SIPRELI UPB') }}</title>
 
-        <!-- FAVICON (Icono de la pestaña) -->
-        <!-- Asegúrate de que la imagen exista en public/images/ -->
-        <link rel="icon" href="{{ asset('images/icon-sipreli.png') }}" type="image/png">
+        <!-- Favicon -->
+        <link rel="shortcut icon" href="{{ asset('images/icon-sipreli.png') }}?v=3" type="image/png">
+        <link rel="icon" href="{{ asset('images/icon-sipreli.png') }}?v=3" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
@@ -42,17 +42,16 @@
                     @if (Auth::user()->role === 'administrador')
                         <aside class="w-64 flex-shrink-0 hidden md:block" aria-label="Sidebar">
                             <div class="h-full px-3 py-4 overflow-y-auto bg-white border-r border-gray-200 sticky top-0">
-                                
                                 <!-- Header del Sidebar (SOLO LOGO) -->
                                 <div class="flex items-center justify-center p-2 mb-4 border-b border-gray-200 pb-4">
-                                    <!-- LOGO SIPRELI (Sidebar) -->
+                                    <!-- LOGO SIPRELI (Sidebar) - Adaptado al ancho -->
                                     <img src="{{ asset('images/logo-sipreli.png') }}" 
-                                         class="h-12 w-auto rounded-lg object-contain bg-gray-50 border border-gray-100 p-1" 
+                                         class="w-full h-auto object-contain" 
                                          alt="Logo SIPRELI UPB"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                     
                                     <!-- Fallback -->
-                                    <div class="h-12 w-32 bg-blue-900 rounded-lg flex items-center justify-center text-white hidden">
+                                    <div class="h-12 w-full bg-blue-900 rounded-lg flex items-center justify-center text-white hidden">
                                         <span class="text-sm font-bold">SIPRELI UPB</span>
                                     </div>
                                 </div>
@@ -136,7 +135,7 @@
                                 <!-- Header del Sidebar (SOLO LOGO) -->
                                 <div class="flex items-center justify-center p-2 mb-4 border-b border-gray-200 pb-4">
                                     <!-- LOGO SIPRELI (Sidebar) - Adaptado al ancho -->
-                                    <img src="{{ asset('images/logo-sipreli.png') }}" 
+                                    <img src="{{ asset('images/logo-sipreli2.png') }}" 
                                          class="w-full h-auto object-contain" 
                                          alt="Logo SIPRELI UPB"
                                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
@@ -288,7 +287,7 @@
                         </p>
 
                         <!-- Icono de Correo -->
-                        <a href="mailto:soporte@upbacalar.edu.mx" class="hover:scale-110 transition-transform duration-200 group">
+                        <a href="mailto:julio.cen@upb.edu.mx" class="hover:scale-110 transition-transform duration-200 group">
                             <div class="bg-white p-1.5 rounded-full shadow-md">
                                 <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                     <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>

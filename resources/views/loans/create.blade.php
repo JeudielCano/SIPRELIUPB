@@ -33,112 +33,70 @@
                     </div>
                     
                     <div class="p-6 bg-gray-50">
-                        <!-- Fila 1: Filtro de Tipo y Cantidad -->
-                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
-                            <!-- Select de Tipo de Recurso -->
-                            <div class="md:col-span-8">
-                                <label class="block mb-2 text-sm font-medium text-gray-900">1. ¿Qué tipo de recurso necesitas?</label>
-                                <select x-model="resourceTypeFilter" @change="resetSearch()" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
-                                    <option value="" disabled selected>-- Selecciona el tipo --</option>
-                                    <option value="equipo">Equipo de Cómputo / Audiovisual</option>
-                                    
-                                    <!-- VALIDACIÓN VISUAL: Solo mostramos Laboratorio si NO es alumno -->
-                                    @if(Auth::user()->applicant_type !== 'alumno')
-                                        <option value="laboratorio">Laboratorio / Espacio Físico</option>
-                                    @endif
-                                    
-                                    <option value="insumo">Insumo / Consumible</option>
-                                </select>
-                            </div>
 
-                            <!-- Input de Cantidad -->
-                            <div class="md:col-span-4">
-                                <label class="block mb-2 text-sm font-medium text-gray-900">2. Cantidad</label>
-                                <div class="relative flex items-center">
-                                    <button type="button" @click="if(quantity > 1) quantity--" class="bg-gray-200 hover:bg-gray-300 border border-gray-300 rounded-s-lg p-3 h-11 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        -
-                                    </button>
-                                    <input type="number" x-model.number="quantity" class="bg-white border-x-0 border-gray-300 h-11 text-center text-gray-900 text-sm focus:ring-blue-500 focus:border-blue-500 block w-full py-2.5" min="1" />
-                                    <button type="button" @click="quantity++" class="bg-gray-200 hover:bg-gray-300 border border-gray-300 rounded-e-lg p-3 h-11 focus:ring-gray-100 focus:ring-2 focus:outline-none">
-                                        +
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <!-- BOTÓN PARA VER RECURSOS DISPONIBLES -->
                         <div class="mb-6">
-                            <a href="{{ route('catalog.index') }}" class="w-full sm:w-auto flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200 focus:ring-4 focus:outline-none focus:ring-blue-300 transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                            <a href="{{ route('catalog.index') }}" class="w-full sm:w-auto flex items-center justify-center px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 border border-blue-200 rounded-lg hover:bg-blue-200 transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
                                 Ver catálogo completo de recursos disponibles
                             </a>
                         </div>
 
-                        <!-- Fila 2: Buscador Inteligente -->
-                        <div class="mb-6 relative">
-                            <label class="block mb-2 text-sm font-medium text-gray-900">3. Buscar y Seleccionar Recurso</label>
-                            
-                            <!-- Input Buscador -->
-                            <div class="relative">
-                                <div class="absolute inset-y-0 start-0 flex items-center ps-3 pointer-events-none">
-                                    <svg class="w-4 h-4 text-gray-500" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 20 20">
-                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m19 19-4-4m0-7A7 7 0 1 1 1 8a7 7 0 0 1 14 0Z"/>
-                                    </svg>
-                                </div>
-                                <input type="text" 
-                                       x-model="searchQuery" 
-                                       @input="showDropdown = true"
-                                       @click.away="showDropdown = false"
-                                       :disabled="resourceTypeFilter === ''"
-                                       :placeholder="resourceTypeFilter === '' ? 'Primero selecciona un tipo arriba' : 'Escribe el nombre del recurso...'" 
-                                       class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full ps-10 p-2.5 disabled:bg-gray-100 disabled:cursor-not-allowed">
+                        <!-- Fila 1: Filtro de Tipo y Cantidad -->
+                        <div class="grid grid-cols-1 md:grid-cols-12 gap-4 mb-4">
+                            <!-- Select de Tipo de Recurso -->
+                            <div class="md:col-span-4">
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Tipo de Recurso</label>
+                                <select x-model="resourceTypeFilter" @change="resetSearch()" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5">
+                                    <option value="" disabled selected>-- Selecciona --</option>
+                                    <option value="equipo">Equipo</option>
+                                    @if(Auth::user()->applicant_type !== 'alumno')
+                                        <option value="laboratorio">Laboratorio</option>
+                                    @endif
+                                    <option value="insumo">Insumo</option>
+                                </select>
+                            </div>
+
+                            <div class="md:col-span-8 relative">
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Buscar Recurso</label>
+                                <input type="text" x-model="searchQuery" @input="showDropdown = true" @click.away="showDropdown = false" :disabled="resourceTypeFilter === ''" placeholder="Escribe para buscar..." class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5 disabled:bg-gray-100">
                                 
-                                <!-- Dropdown de Resultados -->
-                                <div x-show="showDropdown && searchQuery.length > 0" 
-                                     class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto"
-                                     style="display: none;">
-                                    
+                                <div x-show="showDropdown && searchQuery.length > 0" class="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto" style="display: none;">
                                     <template x-for="resource in filteredResources" :key="resource.id">
-                                        <div @click="selectResource(resource)" 
-                                             class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center group"
-                                             :class="resource.total_stock === 0 ? 'bg-red-50 hover:bg-red-100' : 'hover:bg-blue-50'">
+                                        <div @click="selectResource(resource)" class="px-4 py-3 cursor-pointer border-b border-gray-100 flex justify-between items-center group hover:bg-blue-50">
                                             <div>
                                                 <div class="font-bold text-gray-800" x-text="resource.name"></div>
                                                 <div class="text-xs text-gray-500">
                                                     <span x-text="resource.inventory_number || 'S/N'"></span> | 
-                                                    
-                                                    <!-- Mostrar stock o AGOTADO -->
-                                                    <span x-show="resource.total_stock > 0" class="font-bold text-green-600">
-                                                        Disponible: <span x-text="resource.total_stock"></span>
-                                                    </span>
-                                                    <span x-show="resource.total_stock === 0" class="font-bold text-red-600">
-                                                        AGOTADO / OCUPADO
+                                                    <span class="font-bold" :class="resource.total_stock > 0 ? 'text-green-600' : 'text-red-600'">
+                                                        Disp: <span x-text="resource.total_stock"></span>
                                                     </span>
                                                 </div>
                                             </div>
-                                            
-                                            <!-- Botón contextual -->
-                                            <span x-show="resource.total_stock > 0" class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Seleccionar</span>
-                                            <span x-show="resource.total_stock === 0" class="text-xs text-red-600 font-bold">No disponible</span>
+                                            <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">Seleccionar</span>
                                         </div>
                                     </template>
-                                    <div x-show="filteredResources.length === 0" class="px-4 py-3 text-sm text-gray-500 italic">
-                                        No hay recursos disponibles con ese nombre.
-                                    </div>
                                 </div>
                             </div>
+                            <!-- Input de Cantidad -->
+                            <div class="md:col-span-12">
+                                <label class="block mb-2 text-sm font-medium text-gray-900">Cantidad</label>
+                                <input type="number" x-model.number="quantity" class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg block w-full p-2.5" min="1">
+                            </div>
 
-                            <!-- Feedback de Selección -->
-                            <div x-show="selectedResourceName" class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center" style="display: none;">
+
+                        </div>
+                                                    <!-- boton agregar -->
+                            <div x-show="selectedResourceName" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center" style="display: none;">
                                 <div>
                                     <span class="text-xs text-blue-600 uppercase font-bold">Listo para agregar:</span>
                                     <div class="font-bold text-gray-900" x-text="selectedResourceName"></div>
                                 </div>
-                                <button type="button" @click="addItem()" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
+                                <button type="button" @click="addItem()" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform active:scale-95">
                                     Agregar a la Lista ⬇
                                 </button>
                             </div>
-                        </div>
+
+
 
                         <!-- TABLA DE LA LISTA (CARRITO) -->
                         <div x-show="items.length > 0" class="relative overflow-x-auto shadow-sm sm:rounded-lg border border-gray-200 bg-white">

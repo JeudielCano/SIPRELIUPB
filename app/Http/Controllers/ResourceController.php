@@ -6,23 +6,49 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\Storage; // <-- IMPORTANTE: Para manejar archivos
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 class ResourceController extends Controller
 {
-    public function index()
+    /**
+     * Muestra la lista de recursos (Inventario) con filtros.
+     */
+    public function index(Request $request)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
-        $resources = Resource::all();
+        
+        $query = Resource::query();
+
+        // Filtro por Tipo de Recurso
+        if ($request->filled('type')) {
+            $query->where('type', $request->type);
+        }
+
+        // Filtro por Fecha de Alta (created_at)
+        if ($request->filled('date')) {
+            $date = Carbon::parse($request->date);
+            $query->whereDate('created_at', $date);
+        }
+
+        // Ordenar por fecha de creación descendente (lo más nuevo primero)
+        $resources = $query->orderBy('created_at', 'desc')->get();
+        
         return view('admin.resources.index', ['resources' => $resources]);
     }
 
+    /**
+     * Muestra el formulario para dar de alta un nuevo recurso.
+     */
     public function create()
     {
         if (auth()->user()->role !== 'administrador') abort(403);
         return view('admin.resources.create');
     }
 
+    /**
+     * Guarda el nuevo recurso en la base de datos.
+     */
     public function store(Request $request): RedirectResponse
     {
         if (auth()->user()->role !== 'administrador') abort(403);
@@ -31,25 +57,27 @@ class ResourceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(['equipo', 'laboratorio', 'insumo'])],
+            'career' => ['required', Rule::in(['ITID', 'IAEV'])], // Validación de carrera
             'inventory_number' => ['nullable', 'string', 'max:255', 'unique:resources,inventory_number'],
             'total_stock' => ['required', 'integer', 'min:1'],
             'status' => ['required', Rule::in(['disponible', 'prestado', 'mantenimiento'])],
-            'image' => ['nullable', 'image', 'max:2048'], // Validar imagen (max 2MB)
-            'career' => ['required', Rule::in(['ITID', 'IAEV'])],
+            'image' => ['nullable', 'image', 'max:2048'], // Max 2MB
         ]);
 
         // Procesar Subida de Imagen
         if ($request->hasFile('image')) {
-            // Guarda en storage/app/public/resources y devuelve la ruta
             $path = $request->file('image')->store('resources', 'public');
             $validatedData['image_path'] = $path;
         }
 
         Resource::create($validatedData);
 
-        return redirect()->route('admin.resources.index')->with('status', '¡Recurso creado exitosamente!');
+        return redirect()->route('admin.resources.index')->with('status', '¡Recurso dado de alta correctamente!');
     }
 
+    /**
+     * Muestra el formulario para editar un recurso existente.
+     */
     public function edit(string $id)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
@@ -57,6 +85,9 @@ class ResourceController extends Controller
         return view('admin.resources.edit', ['resource' => $resource]);
     }
 
+    /**
+     * Actualiza la información del recurso.
+     */
     public function update(Request $request, string $id): RedirectResponse
     {
         if (auth()->user()->role !== 'administrador') abort(403);
@@ -67,14 +98,14 @@ class ResourceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(['equipo', 'laboratorio', 'insumo'])],
+            'career' => ['required', Rule::in(['ITID', 'IAEV'])],
             'inventory_number' => ['nullable', 'string', 'max:255', Rule::unique('resources', 'inventory_number')->ignore($resource->id)],
             'total_stock' => ['required', 'integer', 'min:1'],
             'status' => ['required', Rule::in(['disponible', 'prestado', 'mantenimiento'])],
             'image' => ['nullable', 'image', 'max:2048'],
-            'career' => ['required', Rule::in(['ITID', 'IAEV'])],
         ]);
 
-        // Procesar Nueva Imagen (y borrar la vieja)
+        // Procesar Nueva Imagen (y borrar la vieja para no llenar el servidor)
         if ($request->hasFile('image')) {
             // Borrar imagen anterior si existe
             if ($resource->image_path) {
@@ -90,24 +121,22 @@ class ResourceController extends Controller
         return redirect()->route('admin.resources.index')->with('status', '¡Recurso actualizado correctamente!');
     }
 
+    /**
+     * Elimina (Da de baja) el recurso.
+     */
     public function destroy(string $id)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
 
         $resource = Resource::findOrFail($id);
         
-        // Borrar imagen al eliminar el recurso
+        // Borrar imagen asociada al eliminar el recurso
         if ($resource->image_path) {
             Storage::disk('public')->delete($resource->image_path);
         }
         
         $resource->delete();
 
-        return redirect()->route('admin.resources.index')->with('status', '¡Recurso eliminado del inventario!');
-    }
-
-    public function show(string $id)
-    {
-        //
+        return redirect()->route('admin.resources.index')->with('status', '¡Recurso dado de baja del inventario!');
     }
 }

@@ -7,13 +7,18 @@
         <title>Bienvenido a {{ config('app.name', 'SIPRELI UPB') }}</title>
 
         <!-- Favicon -->
-        <link rel="icon" href="{{ asset('images/icon-sipreliupb.png') }}" type="image/png">
+        <link rel="shortcut icon" href="{{ asset('images/icon-sipreliupb.png') }}?v=3" type="image/png">
+        <link rel="icon" href="{{ asset('images/icon-sipreliupb.png') }}?v=3" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
+
+        
         <!-- Scripts & Styles -->
+        <!-- Como AppServiceProvider ahora maneja la ruta pública dinámicamente, -->
+        <!-- podemos usar "vite" de forma segura tanto en local como en producción -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="antialiased font-sans text-gray-900 bg-gray-50">
@@ -36,7 +41,7 @@
                     @if (Route::has('login'))
                         <div class="flex items-center gap-4">
                             @auth
-                                <!-- Redirección inteligente según el rol -->
+                                <!-- Redirección inteligente -->
                                 <a href="{{ Auth::user()->role === 'administrador' ? route('admin.dashboard') : url('/dashboard') }}" class="text-white font-semibold hover:text-blue-200 transition text-sm md:text-base border border-white/30 px-4 py-2 rounded-lg backdrop-blur-sm hover:bg-white/10">
                                     Ir al Panel
                                 </a>
@@ -59,30 +64,16 @@
             <!-- LÓGICA DE VISTAS DIFERENCIADAS -->
             @if(Auth::check() && Auth::user()->role === 'administrador')
                 
-                <!-- ========================================== -->
-                <!-- VISTA EXCLUSIVA PARA ADMINISTRADOR -->
-                <!-- ========================================== -->
+                <!-- VISTA ADMIN (Fondo welcome2.png) -->
                 <main class="flex-grow relative flex items-center justify-center min-h-screen">
-                    <!-- Imagen de Fondo Admin (welcome2.png) -->
                     <div class="absolute inset-0 z-0 overflow-hidden">
-                        <img src="{{ asset('images/welcome2.png') }}" 
-                             alt="Fondo Admin" 
-                             class="w-full h-full object-cover object-center"
-                             onerror="this.style.display='none'; this.parentNode.classList.add('bg-slate-900');">
-                        <!-- Overlay suave para leer el texto -->
+                        <img src="{{ asset('images/welcome2.png') }}" alt="Fondo Admin" class="w-full h-full object-cover object-center" onerror="this.style.display='none'; this.parentNode.classList.add('bg-slate-900');">
                         <div class="absolute inset-0 bg-black/30"></div>
                     </div>
-
-                    <!-- Contenido Simple y Elegante -->
                     <div class="relative z-10 text-center text-white px-4">
                         <p class="text-xl md:text-2xl font-light tracking-widest mb-2 opacity-90">SISTEMA DE GESTIÓN</p>
-                        <h1 class="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">
-                            Buenos días, {{ Auth::user()->name }}
-                        </h1>
-                        <p class="text-lg text-gray-200 mb-8 max-w-2xl mx-auto">
-                            Todo está listo para administrar los recursos de la universidad.
-                        </p>
-                        
+                        <h1 class="text-5xl md:text-7xl font-bold mb-6 drop-shadow-lg">Buenos días, {{ Auth::user()->name }}</h1>
+                        <p class="text-lg text-gray-200 mb-8 max-w-2xl mx-auto">Todo está listo para administrar los recursos de la universidad.</p>
                         <a href="{{ route('admin.dashboard') }}" class="inline-flex items-center px-8 py-3 border border-transparent text-base font-medium rounded-md text-slate-900 bg-white hover:bg-gray-50 md:py-4 md:text-lg md:px-10 shadow-xl transition-transform hover:scale-105">
                             Acceder al Dashboard
                             <svg class="ml-2 -mr-1 w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
@@ -92,37 +83,25 @@
 
             @else
 
-                <!-- ========================================== -->
-                <!-- VISTA PARA SOLICITANTES Y VISITANTES -->
-                <!-- ========================================== -->
+                <!-- VISTA PÚBLICA / SOLICITANTE (Fondo welcome1.png) -->
                 <main class="flex-grow relative flex items-center justify-center min-h-screen">
-                    <!-- Imagen de Fondo General (welcome1.png) -->
                     <div class="absolute inset-0 z-0 overflow-hidden">
-                        <img src="{{ asset('images/welcome1.png') }}" 
-                             alt="Fondo UPB" 
-                             class="w-full h-full object-cover object-center scale-105 animate-fade-in-slow"
-                             onerror="this.style.display='none'; this.parentNode.classList.add('bg-gradient-to-br', 'from-blue-900', 'to-slate-800');">
+                        <img src="{{ asset('images/welcome1.png') }}" alt="Fondo UPB" class="w-full h-full object-cover object-center scale-105 animate-fade-in-slow" onerror="this.style.display='none'; this.parentNode.classList.add('bg-gradient-to-br', 'from-blue-900', 'to-slate-800');">
                         <div class="absolute inset-0 bg-gradient-to-r from-blue-900/90 via-blue-900/70 to-slate-900/40"></div>
                     </div>
 
                     <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white mt-16">
-                        <!-- Badge -->
                         <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 backdrop-blur-sm">
                             <span class="text-blue-200 text-sm font-bold tracking-wider uppercase">Gestión de recursos de las ingenierías</span>
                         </div>
-
-                        <!-- Título -->
                         <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight drop-shadow-xl">
                             Los préstamos son más <br class="hidden md:block">
                             rápidos y sencillos con <span class="text-transparent bg-clip-text bg-gradient-to-r from-blue-200 to-cyan-300">SIPRELI UPB</span>
                         </h1>
-
-                        <!-- Texto -->
                         <p class="text-lg md:text-2xl text-gray-200 mb-10 max-w-3xl mx-auto leading-relaxed font-light drop-shadow-md">
                             Solicita un recurso de las ingenierías de la Universidad Politécnica de Bacalar completando el registro y llenando tu solicitud en minutos.
                         </p>
 
-                        <!-- Botones -->
                         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
                             @auth
                                 <a href="{{ url('/dashboard') }}" class="w-full sm:w-auto px-8 py-4 bg-white text-blue-900 text-lg font-bold rounded-xl shadow-2xl hover:bg-gray-100 hover:shadow-white/20 transition transform hover:-translate-y-1 flex items-center justify-center">
@@ -139,7 +118,6 @@
                             @endauth
                         </div>
 
-                        <!-- Estadísticas -->
                         <div class="mt-16 grid grid-cols-1 md:grid-cols-3 gap-8 border-t border-white/10 pt-8 max-w-5xl mx-auto text-blue-100/90">
                             <div class="flex flex-col items-center justify-center">
                                 <span class="block text-2xl md:text-3xl font-bold text-white">24/7</span>
@@ -159,12 +137,10 @@
 
             @endif
 
-            <!-- 3. FOOTER INTEGRADO (Mismo diseño para todos) -->
+            <!-- 3. FOOTER INTEGRADO (Con tu correo personalizado) -->
             <div class="bg-slate-600">
                 <footer class="bg-slate-600 text-white border-t border-slate-500">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
-                        
-                        <!-- PARTE SUPERIOR -->
                         <div class="flex flex-col md:flex-row items-start justify-between gap-8 mb-6">
                             
                             <!-- Logo y Contacto -->
@@ -184,7 +160,6 @@
                                     </div>
                                 </div>
                             </div>
-
                             <!-- Logos Carreras -->
                             <div class="flex items-center space-x-4 ml-auto md:ml-0 md:pt-4">
                                 <div class="h-16 w-16 bg-gradient-to-br from-teal-400 to-green-600 rounded-lg flex items-center justify-center text-white shadow-lg">
@@ -195,15 +170,14 @@
                                 </div>
                             </div>
                         </div>
-
                         <hr class="border-white/30 my-6" />
-
-                        <!-- Copyright e Icono -->
+                        <!-- Copyright -->
                         <div class="flex justify-between items-center relative">
                             <p class="text-xs text-gray-300">
                                 &copy; {{ date('Y') }} Universidad Politécnica de Bacalar. All rights reserved.
                             </p>
-                            <a href="mailto:soporte@upbacalar.edu.mx" class="hover:scale-110 transition-transform duration-200 group">
+                            <!-- Tu enlace personalizado -->
+                            <a href="mailto:julio.cen@upb.edu.mx" class="hover:scale-110 transition-transform duration-200 group">
                                 <div class="bg-white p-1.5 rounded-full shadow-md">
                                     <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                                         <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z"/>
@@ -214,7 +188,6 @@
                     </div>
                 </footer>
             </div>
-
         </div>
     </body>
 </html>

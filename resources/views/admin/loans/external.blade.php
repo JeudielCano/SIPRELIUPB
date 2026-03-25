@@ -40,8 +40,9 @@
                             <table class="w-full text-sm text-left text-gray-500">
                                 <thead class="text-xs text-gray-700 uppercase bg-gray-50">
                                     <tr>
-                                        <th scope="col" class="px-6 py-3">Folio</th>
+                                        <th scope="col" class="px-6 py-3">Solicitud</th>
                                         <th scope="col" class="px-6 py-3">Solicitante</th>
+                                        <th scope="col" class="px-6 py-3">Recursos</th>
                                         <th scope="col" class="px-6 py-3">Periodo del Préstamo</th>
                                         <th scope="col" class="px-6 py-3">Etiqueta</th>
                                         <th scope="col" class="px-6 py-3 text-center">Acciones</th>
@@ -57,6 +58,18 @@
                                                 <div class="font-bold text-gray-900">{{ $loan->user->name }}</div>
                                                 <div class="text-xs text-gray-500">{{ ucfirst($loan->user->applicant_type) }}</div>
                                             </td>
+                                            <td class="px-6 py-4" title="{{ $loan->items ? $loan->items->map(fn($item) => $item->resource->name . ' (x' . $item->quantity . ')')->implode(', ') : 'Sin recursos' }}">
+                                                <div class="font-medium text-gray-900">
+                                                    @if($loan->items && $loan->items->count() > 0)
+                                                        {{ Str::limit($loan->items->map(fn($item) => $item->resource->name)->implode(', '), 35, '...') }}
+                                                    @else
+                                                        <span class="text-gray-400 italic">No hay recursos</span>
+                                                    @endif
+                                                </div>
+                                                <div class="text-[10px] text-gray-500 mt-1 uppercase tracking-wider">
+                                                    {{ $loan->items ? $loan->items->sum('quantity') : 0 }} artículo(s)
+                                                </div>
+                                            </td>
                                             <td class="px-6 py-4">
                                                 <div class="text-xs">
                                                     <span class="font-bold text-gray-700">Del:</span> {{ $loan->pickup_at->format('d/m/Y H:i') }}<br>
@@ -68,12 +81,14 @@
                                                     Externa
                                                 </span>
                                             </td>
-                                            <td class="px-6 py-4 text-center">
-                                                <a href="{{ route('admin.loans.show', $loan) }}" class="inline-flex items-center px-3 py-2 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300">
-                                                    Revisar y Aprobar
-                                                    <svg class="rtl:rotate-180 w-3.5 h-3.5 ms-2" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 10">
-                                                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 5h12m0 0L9 1m4 4L9 9"/>
+                                            <td class="px-6 py-4 text-right whitespace-nowrap">
+                                                <a href="{{ route('admin.loans.show', $loan) }}" 
+                                                class="inline-flex items-center justify-center text-blue-700 bg-blue-50 hover:bg-blue-100 border border-blue-200 font-bold rounded-lg text-xs px-3 py-1.5 transition-all shadow-sm active:scale-95 group">
+                                                    <svg class="w-4 h-4 mr-1.5 text-blue-500 group-hover:text-blue-700 group-hover:scale-110 transition-all" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                                     </svg>
+                                                    Revisar
                                                 </a>
                                             </td>
                                         </tr>

@@ -53,8 +53,23 @@ class ReportController extends Controller
 
         $loan->load(['user', 'activityType', 'subject', 'items.resource', 'approver']);
 
+
+        // --- 1. PARA EL LOGOTIPO ---
+        $logoPath = public_path('images/logo2-upb.png');
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+        // --- PARA EL LOGOTIPO ---
+
         // Cargamos la vista especial para PDF
-        $pdf = Pdf::loadView('admin.reports.pdf', compact('loan'));
+        $pdf = Pdf::loadView('admin.reports.pdf', compact(
+            'loan',
+            'logoBase64' // <-- Importante pasar esta variable para generar el logo
+            ));
 
         // Descargamos el archivo con un nombre descriptivo
         return $pdf->download('Reporte_Prestamo_UPB_' . $loan->id . '.pdf');

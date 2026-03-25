@@ -154,7 +154,7 @@
                                            name="pickup_at" 
                                            id="pickup_at" 
                                            x-model="pickupDate" 
-                                           @change="updateDueDate"
+                                           @change="validateDates()"
                                            class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5">
                                     <p class="mt-1 text-xs text-gray-500">Selecciona cuándo recogerás el material.</p>
                                 </div>
@@ -171,7 +171,7 @@
                                         <input type="time" 
                                                id="return_time" 
                                                x-model="returnTime"
-                                               @change="updateDueDate"
+                                               @change="validateDates()"
                                                class="bg-white border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" 
                                                required>
                                     </div>
@@ -189,7 +189,7 @@
                                             @click="validateDates()"
                                             class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-200 font-medium rounded-lg text-sm px-5 py-2.5 me-2"
                                             :class="{'bg-green-100 text-green-700 border-green-400': datesValid, 'bg-white text-gray-900': !datesValid}">
-                                        <span x-show="!datesValid">Validar Horario</span>
+                                        <span x-show="!datesValid">comprobar horario</span>
                                         <span x-show="datesValid" style="display: none;">✓ Horario Correcto</span>
                                     </button>
                                     <span x-show="dateError" class="text-red-600 text-sm font-medium ml-2" x-text="dateError"></span>

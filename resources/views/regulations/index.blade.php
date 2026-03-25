@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Reglamentos y Normatividad') }}
+            {{ __('Reglamentos Internos de Laboratorios y Talleres de Ingenierías 2026') }}
         </h2>
     </x-slot>
 
@@ -18,7 +18,7 @@
                     </div>
                     <div class="ml-3">
                         <p class="text-sm text-blue-700">
-                            Es responsabilidad de todos los usuarios conocer y acatar los reglamentos vigentes para el uso de las instalaciones y equipos de la UPB.
+                            Es responsabilidad de todos los usuarios conocer y acatar los reglamentos vigentes para el uso de las instalaciones de la Universidad Politecnica de Bacalar.
                         </p>
                     </div>
                 </div>
@@ -45,9 +45,9 @@
                             </p>
                             
                             <div class="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                                <span class="text-xs text-gray-400">Actualizado: {{ \Carbon\Carbon::parse($doc['date'])->format('d M, Y') }}</span>
+                                <span class="text-xs text-gray-400">Actualizado: {{ $doc['date'] }}</span>
                                 
-                                <!-- Botón Descargar (Simulado) -->
+                                <!-- Botón Descargar -->
                                 <a href="{{ route('regulations.download', ['filename' => $doc['file']]) }}" class="text-blue-600 hover:text-blue-800 text-sm font-medium flex items-center transition-colors">
                                     Descargar
                                     <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -58,6 +58,8 @@
                 @endforeach
             </div>
 
+
+            
         </div>
     </div>
 </x-app-layout>

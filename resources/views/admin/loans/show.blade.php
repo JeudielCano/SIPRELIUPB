@@ -28,7 +28,6 @@
             <!-- Mensajes -->
             <div class="mb-4">
                 <x-auth-session-status :status="session('status')" />
-                <!-- Mostrar errores de validación si los hay -->
                 @if ($errors->any())
                     <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
                         <span class="font-medium">¡Atención!</span>
@@ -105,14 +104,11 @@
                 <div class="flex items-center justify-end space-x-4 bg-white p-6 rounded-lg shadow border border-gray-200">
                     <span class="text-sm text-gray-500 mr-2">¿Qué deseas hacer con esta solicitud?</span>
                     
-                    <!-- Formulario Rechazar -->
-                    <form action="{{ route('admin.loans.reject', $loan) }}" method="POST" onsubmit="return confirm('¿Rechazar esta solicitud?');">
-                        @csrf
-                        @method('PATCH')
-                        <button type="submit" class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors duration-200">
-                            Rechazar
-                        </button>
-                    </form>
+                    <!-- Botón Rechazar (abre modal) -->
+                    <button onclick="document.getElementById('modal-rechazo').classList.remove('hidden')"
+                        class="text-red-700 hover:text-white border border-red-700 hover:bg-red-800 focus:ring-4 focus:outline-none focus:ring-red-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center transition-colors duration-200">
+                        Rechazar
+                    </button>
 
                     <!-- Formulario Aprobar -->
                     <form action="{{ route('admin.loans.approve', $loan) }}" method="POST" onsubmit="return confirm('¿Aprobar esta solicitud?');">
@@ -219,4 +215,38 @@
 
         </div>
     </div>
+
+    <!-- Modal de Rechazo -->
+    <div id="modal-rechazo" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg shadow-xl p-6 w-full max-w-md mx-4">
+            <h3 class="text-lg font-semibold text-gray-900 mb-4">Rechazar Solicitud #{{ $loan->id }}</h3>
+            
+            <form method="POST" action="{{ route('admin.loans.reject', $loan) }}">
+                @csrf
+                @method('PATCH')
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Motivo del rechazo <span class="text-gray-400">(opcional)</span>
+                    </label>
+                    <textarea name="reason" rows="3" maxlength="300"
+                        class="w-full border border-gray-300 rounded-lg p-3 text-sm focus:ring-2 focus:ring-red-300 focus:border-red-400 resize-none"
+                        placeholder="Ej: Stock insuficiente, fechas no disponibles..."></textarea>
+                </div>
+
+                <div class="flex justify-end gap-3">
+                    <button type="button" 
+                        onclick="document.getElementById('modal-rechazo').classList.add('hidden')"
+                        class="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200">
+                        Cancelar
+                    </button>
+                    <button type="submit"
+                        class="px-4 py-2 text-sm text-white bg-red-600 rounded-lg hover:bg-red-700">
+                        Confirmar Rechazo
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 </x-app-layout>

@@ -29,7 +29,7 @@
                     <!-- Imagen solicitada: icon-sipreli.png -->
                     <!-- Ajusta 'w-20 h-20' si necesitas que sea más grande o pequeña -->
                     <img src="{{ asset('images/logo2-upb.png') }}" 
-                         class="w-40 h-32 object-contain" 
+                         class="w-50 h-40 object-contain" 
                          alt="Logo SIPRELI"
                          onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                     

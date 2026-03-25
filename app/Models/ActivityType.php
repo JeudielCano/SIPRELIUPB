@@ -16,6 +16,11 @@ class ActivityType extends Model
 
     // AÑADE ESTO PARA QUE EL SEEDER FUNCIONE
     protected $fillable = ['name'];
+
+    public function loanRequests()
+    {
+        return $this->hasMany(LoanRequest::class);
+    }
 }
 
 return new class extends Migration

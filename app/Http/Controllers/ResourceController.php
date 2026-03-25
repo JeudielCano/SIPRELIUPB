@@ -8,6 +8,10 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Storage;
 use Carbon\Carbon;
+use App\Models\LoanItem;
+use App\Models\ResourceGuardian;
+// Para generar los pdf
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class ResourceController extends Controller
 {
@@ -17,25 +21,29 @@ class ResourceController extends Controller
     public function index(Request $request)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
-        
-        $query = Resource::query();
 
-        // Filtro por Tipo de Recurso
-        if ($request->filled('type')) {
+        $query = Resource::where('status', '!=', 'dado_de_baja');
+
+        if ($request->type) {
             $query->where('type', $request->type);
         }
-
-        // Filtro por Fecha de Alta (created_at)
-        if ($request->filled('date')) {
-            $date = Carbon::parse($request->date);
-            $query->whereDate('created_at', $date);
+        if ($request->date) {
+            $query->whereDate('created_at', $request->date);
+        }
+        // ← AGREGA ESTO:
+        if ($request->search) {
+            $query->where(function ($q) use ($request) {
+                $q->where('name', 'LIKE', '%' . $request->search . '%')
+                ->orWhere('inventory_number', 'LIKE', '%' . $request->search . '%');
+            });
         }
 
-        // Ordenar por fecha de creación descendente (lo más nuevo primero)
-        $resources = $query->orderBy('created_at', 'desc')->get();
-        
-        return view('admin.resources.index', ['resources' => $resources]);
+        $resources = $query->paginate(10)->withQueryString();
+        $disabledResources = Resource::where('status', 'dado_de_baja')->get();
+
+        return view('admin.resources.index', compact('resources', 'disabledResources'));
     }
+            
 
     /**
      * Muestra el formulario para dar de alta un nuevo recurso.
@@ -43,7 +51,12 @@ class ResourceController extends Controller
     public function create()
     {
         if (auth()->user()->role !== 'administrador') abort(403);
-        return view('admin.resources.create');
+
+        // 1. Extraemos las carreras de la base de datos
+        $careers = \App\Models\Career::where('active', true)->orderBy('name')->get();
+
+        // 2. Se las enviamos a la vista usando compact()
+        return view('admin.resources.create', compact('careers'));
     }
 
     /**
@@ -57,7 +70,7 @@ class ResourceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(['equipo', 'laboratorio', 'insumo'])],
-            'career' => ['required', Rule::in(['ITID', 'IAEV'])], // Validación de carrera
+            'career_id' => ['required', 'exists:careers,id'], // Validación de carrera
             'inventory_number' => ['nullable', 'string', 'max:255', 'unique:resources,inventory_number'],
             'total_stock' => ['required', 'integer', 'min:1'],
             'status' => ['required', Rule::in(['disponible', 'prestado', 'mantenimiento'])],
@@ -78,13 +91,14 @@ class ResourceController extends Controller
     /**
      * Muestra el formulario para editar un recurso existente.
      */
-    public function edit(string $id)
+    public function edit(Resource $resource)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
-        $resource = Resource::findOrFail($id);
-        return view('admin.resources.edit', ['resource' => $resource]);
+        
+        $careers = \App\Models\Career::where('active', true)->orderBy('name')->get(); // ← agrega esto
+        
+        return view('admin.resources.edit', compact('resource', 'careers'));
     }
-
     /**
      * Actualiza la información del recurso.
      */
@@ -98,10 +112,10 @@ class ResourceController extends Controller
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'type' => ['required', Rule::in(['equipo', 'laboratorio', 'insumo'])],
-            'career' => ['required', Rule::in(['ITID', 'IAEV'])],
+            'career' => ['required', 'exists:careers,id'],
             'inventory_number' => ['nullable', 'string', 'max:255', Rule::unique('resources', 'inventory_number')->ignore($resource->id)],
             'total_stock' => ['required', 'integer', 'min:1'],
-            'status' => ['required', Rule::in(['disponible', 'prestado', 'mantenimiento'])],
+            'status' => ['required', Rule::in(['disponible', 'prestado', 'mantenimiento', 'dado_de_baja'])],
             'image' => ['nullable', 'image', 'max:2048'],
         ]);
 
@@ -121,22 +135,105 @@ class ResourceController extends Controller
         return redirect()->route('admin.resources.index')->with('status', '¡Recurso actualizado correctamente!');
     }
 
-    /**
-     * Elimina (Da de baja) el recurso.
-     */
-    public function destroy(string $id)
+    // Dar de baja (cambia estado)
+    public function disable(Resource $resource)
     {
         if (auth()->user()->role !== 'administrador') abort(403);
 
-        $resource = Resource::findOrFail($id);
-        
-        // Borrar imagen asociada al eliminar el recurso
+        $resource->update(['status' => 'dado_de_baja']);
+
+        return back()->with('status', "'{$resource->name}' ha sido dado de baja.");
+    }
+
+    // Recuperar recurso dado de baja
+    public function recover(Resource $resource)
+    {
+        if (auth()->user()->role !== 'administrador') abort(403);
+
+        $resource->update(['status' => 'disponible']);
+
+        return back()->with('status', "'{$resource->name}' ha sido recuperado.");
+    }
+
+
+    /**
+     */
+    // Eliminar permanentemente (solo recursos dados de baja)
+    public function destroy(Resource $resource)
+    {
+        if (auth()->user()->role !== 'administrador') abort(403);
+
+        if ($resource->status !== 'dado_de_baja') {
+            return back()->withErrors(['status' => 'Solo se pueden eliminar recursos que estén dados de baja.']);
+        }
+
+        // Eliminar loan_items asociados
+        LoanItem::where('resource_id', $resource->id)->delete();
+
+        // Eliminar asignaciones de subresguardantes
+        ResourceGuardian::where('resource_id', $resource->id)->delete();
+
+        // Eliminar imagen
         if ($resource->image_path) {
             Storage::disk('public')->delete($resource->image_path);
         }
-        
+
         $resource->delete();
 
-        return redirect()->route('admin.resources.index')->with('status', '¡Recurso dado de baja del inventario!');
+        return back()->with('status', "Recurso eliminado permanentemente.");
     }
+
+    // Para poder generar pdf de descargas
+    public function downloadBajas()
+    {
+        if (auth()->user()->role !== 'administrador') abort(403);
+
+        // 1. OBTENER Y CONVERTIR EL LOGO A BASE64
+        $logoPath = public_path('images/logo2-upb.png'); // Ruta física en el servidor
+        $logoBase64 = '';
+        // Verificamos que el archivo exista para evitar errores
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+            // Creamos la cadena Base64 lista para el HTML
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+
+        // Obtenemos los recursos dados de baja con su carrera asignada
+        $resources = Resource::where('status', 'dado_de_baja')
+                            ->with('assignedCareer') 
+                            ->orderBy('name')
+                            ->get();
+
+        // Cargamos la vista creada
+        $pdf = Pdf::loadView('admin.resources.pdf-bajas', compact('resources', 'logoBase64'));
+        // Retornamos el PDF para descarga con la fecha actual
+        return $pdf->download('reporte-bajas-'.now()->format('d-m-Y').'.pdf');
+    }
+
+    // descargar inventario
+    public function downloadInventory()
+    {
+        if (auth()->user()->role !== 'administrador') abort(403);
+
+        // 1. Preparar el Logo (Base64)
+        $logoPath = public_path('images/logo2-upb.png');
+        $logoBase64 = file_exists($logoPath) 
+            ? 'data:image/' . pathinfo($logoPath, PATHINFO_EXTENSION) . ';base64,' . base64_encode(file_get_contents($logoPath)) 
+            : null;
+
+        // 2. Obtener todos los recursos activos
+        $resources = Resource::where('status', '!=', 'dado_de_baja')
+                            ->with('assignedCareer')
+                            ->orderBy('name')
+                            ->get();
+
+        // 3. Generar PDF (Usaremos una vista nueva)
+        $pdf = Pdf::loadView('admin.resources.pdf-inventory', compact('resources', 'logoBase64'))
+                ->setPaper('a4', 'landscape'); // Landscape es mejor para tantas columnas
+
+        return $pdf->download('inventario-general-' . now()->format('d-m-Y') . '.pdf');
+    }
+
+
 }

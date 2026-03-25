@@ -11,7 +11,7 @@
             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                 <div class="p-6 text-gray-900">
                     
-                    <form action="{{ route('admin.resources.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6">
+                    <form method="POST" action="{{ route('admin.resources.store') }}" enctype="multipart/form-data">
                         @csrf
 
                         <!-- 1. SELECTOR DE TIPO -->
@@ -62,14 +62,17 @@
                                             <input type="text" name="inventory_number" id="inventory_number" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Ej. UPB-001" :value="'{{ old('inventory_number') }}'">
                                             <x-input-error :messages="$errors->get('inventory_number')" class="mt-2" />
                                         </div>
-                                        <div>
+                                        <div> <!-- Carrera -->
                                             <label for="career" class="block mb-2 text-sm font-medium text-gray-900">Asignar a Carrera</label>
-                                            <select id="career" name="career" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
+                                            <select id="career" name="career_id" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" required>
                                                 <option value="" disabled selected>Selecciona...</option>
-                                                <option value="ITID" {{ old('career') == 'ITID' ? 'selected' : '' }}>ITID (Tecnologías de la Inf.)</option>
-                                                <option value="IAEV" {{ old('career') == 'IAEV' ? 'selected' : '' }}>IAEV (Animación y Efectos)</option>
+                                                @foreach($careers as $career)
+                                                    <option value="{{ $career->id }}" {{ old('career_id') == $career->id ? 'selected' : '' }}>
+                                                        {{ $career->name }}
+                                                    </option>
+                                                @endforeach
                                             </select>
-                                            <x-input-error :messages="$errors->get('career')" class="mt-2" />
+                                            <x-input-error :messages="$errors->get('career_id')" class="mt-2" />
                                         </div>
                                     </div>
 
@@ -121,13 +124,23 @@
                                 <a href="{{ route('admin.resources.index') }}" class="text-gray-900 bg-white border border-gray-300 focus:outline-none hover:bg-gray-100 focus:ring-4 focus:ring-gray-100 font-medium rounded-lg text-sm px-5 py-2.5">
                                     Cancelar
                                 </a>
-                                <button type="submit" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5">
-                                    Dar de Alta Recurso
+                                <button type="submit" class="bg-blue-600 text-white font-bold py-2 px-4 rounded-lg...">
+                                    Dar de alta recurso
                                 </button>
                             </div>
                         </div>
 
                     </form>
+                    @if ($errors->any())
+                        <div class="mb-4 bg-red-50 border-l-4 border-red-500 p-4 rounded-r-lg">
+                            <div class="text-red-800 font-bold mb-2">Laravel dice que hay errores:</div>
+                            <ul class="list-disc list-inside text-sm text-red-700">
+                                @foreach ($errors->all() as $error)
+                                    <li>{{ $error }}</li>
+                                @endforeach
+                            </ul>
+                        </div>
+                    @endif
                 </div>
             </div>
         </div>

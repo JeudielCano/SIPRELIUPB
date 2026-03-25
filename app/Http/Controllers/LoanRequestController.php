@@ -10,6 +10,9 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Notifications\NewLoanRequest;
+
 
 class LoanRequestController extends Controller
 {
@@ -121,23 +124,32 @@ class LoanRequestController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $items) {
+        $userId = auth()->id();
+
+        DB::transaction(function () use ($validated, $items, $userId) {
             $loan = LoanRequest::create([
-                'user_id' => auth()->id(),
-                'activity_type_id' => $validated['activity_type_id'],
-                'subject_id' => $validated['subject_id'],
-                'status' => 'pendiente',
-                'pickup_at' => $validated['pickup_at'],
-                'due_at' => $validated['due_at'],
-                'observations' => $validated['observations'],
-            ]);
+            'user_id'          => $userId,
+            'activity_type_id' => $validated['activity_type_id'],
+            'subject_id'       => $validated['subject_id'],
+            'status'           => 'pendiente',
+            'pickup_at'        => $validated['pickup_at'],
+            'due_at'           => $validated['due_at'],
+
+            'observations'     => $validated['observations'] ?? null,
+        ]);
 
             foreach ($items as $itemData) {
                 LoanItem::create([
                     'loan_request_id' => $loan->id,
-                    'resource_id' => $itemData['id'],
-                    'quantity' => $itemData['quantity'],
+                    'resource_id'     => $itemData['id'],
+                    'quantity'        => $itemData['quantity'],
                 ]);
+            }
+            
+            // ← LÍNEA NUEVA: notificar a todos los administradores
+            $admins = User::where('role', 'administrador')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewLoanRequest($loan));
             }
         });
 

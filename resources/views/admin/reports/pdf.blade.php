@@ -25,12 +25,75 @@
         .status-bueno { background-color: green; }
         .status-danado { background-color: red; }
         .status-perdido { background-color: black; }
+
+        /* Estilos para el Header con logo */
+        .header-container { 
+            width: 100%; 
+            max-width: 100%; 
+            margin: 0 auto 15px auto; /* Centrado y con menos margen inferior */
+            border-bottom: 2px solid #0056b3; 
+            padding-bottom: 8px;
+        }
+
+        .logo-table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            border: none !important;
+        }
+
+        .logo-table td { 
+            border: none !important; 
+            padding: 0 !important; 
+            vertical-align: middle; 
+        }
+
+        /* AJUSTE DEL LOGOTIPO */
+        .logo-td { 
+            width: 120px; /* Fijamos un ancho para que no empuje el texto */
+            text-align: left; 
+        }
+
+        .logo-img { 
+            height: 55px; /* Altura fija para que sea discreto */
+            width: auto;
+            display: block;
+        }
+
+        /* AJUSTE DEL TEXTO */
+        .text-td { 
+            text-align: right; 
+        }
+
+        .header-text h1 { 
+            color: #0056b3; 
+            margin: 0; 
+            font-size: 15px; /* Un poco más pequeño */
+            text-transform: uppercase; 
+        }
+
+        .header-text p { 
+            margin: 1px 0; 
+            color: #555; 
+            font-size: 9px; 
+        }
+
+        .header-text .report-title { 
+            font-size: 11px; 
+            font-weight: bold; 
+            color: #333; 
+            margin-top: 3px; 
+            text-transform: none;
+        }
+        /* Fin de los estilos para el Header con logo */
     </style>
 </head>
 <body>
+<!--Para llamar la plantilla del header-->
+    {{-- Llamamos a la plantilla compartida --}}
+    @include('pdf.header', ['tituloReporte' => 'Reporte de Inventario: Recursos Dados de Baja'])
+<!--Fin de plantilla del header-->
 
-    <div class="header">
-        <h1>Universidad Politécnica de Bacalar</h1>
+    <div> <!-- Titulo del reporte   -->
         <p>Sistema de Préstamos de Laboratorios e Insumos (SIPRELI)</p>
         <p><strong>REPORTE DE ENTREGA Y DEVOLUCIÓN DE MATERIAL</strong></p>
     </div>

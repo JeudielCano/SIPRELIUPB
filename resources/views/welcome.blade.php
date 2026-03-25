@@ -7,19 +7,18 @@
         <title>Bienvenido a {{ config('app.name', 'SIPRELI UPB') }}</title>
 
         <!-- Favicon -->
-        <link rel="shortcut icon" href="{{ asset('images/icon-sipreliupb.png') }}?v=3" type="image/png">
-        <link rel="icon" href="{{ asset('images/icon-sipreliupb.png') }}?v=3" type="image/png">
+        <link rel="shortcut icon" href="{{ asset('images/icon-sipreli.png') }}?v=3" type="image/png">
+        <link rel="icon" href="{{ asset('images/icon-sipreli.png') }}?v=3" type="image/png">
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.bunny.net">
         <link href="https://fonts.bunny.net/css?family=figtree:400,600&display=swap" rel="stylesheet" />
 
-
-        
         <!-- Scripts & Styles -->
-        <!-- Como AppServiceProvider ahora maneja la ruta pública dinámicamente, -->
-        <!-- podemos usar "vite" de forma segura tanto en local como en producción -->
+        <!-- RESTAURADO: Usamos la directiva nativa de Vite -->
+        <!-- Gracias a la configuración en AppServiceProvider, ahora debería encontrar el manifest.json correctamente -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+        
     </head>
     <body class="antialiased font-sans text-gray-900 bg-gray-50">
         
@@ -32,8 +31,10 @@
                     <!-- Logo / Marca -->
                     <div class="flex items-center gap-3">
                         <div class="flex flex-col">
-                            <span class="text-white font-black text-2xl tracking-wider drop-shadow-md leading-none">SIPRELI</span>
-                            <span class="text-blue-200 text-xs font-bold tracking-widest uppercase drop-shadow-sm">Universidad Politécnica de Bacalar</span>
+                            <img src="{{ asset('images/logo-upb.png') }}?v=3" alt="Logo UPB" class="h-16 w-auto object-contain"> 
+                            <!--<span class="text-white font-black text-2xl tracking-wider drop-shadow-md leading-none">SIPRELI</span>-->
+                            <!--<span class="text-blue-200 text-xs font-bold tracking-widest uppercase drop-shadow-sm">Universidad Politécnica de Bacalar</span>-->
+                          
                         </div>
                     </div>
 
@@ -92,7 +93,8 @@
 
                     <div class="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white mt-16">
                         <div class="inline-block mb-6 px-4 py-1.5 rounded-full bg-blue-500/20 border border-blue-400/30 backdrop-blur-sm">
-                            <span class="text-blue-200 text-sm font-bold tracking-wider uppercase">Gestión de recursos de las ingenierías</span>
+                            <span class="text-blue-200 text-sm font-bold tracking-wider">Sistema de Préstamos en Línea</span>
+                            <span class= "block text-yellow-200 text-sm font-bold tracking-wider uppercaset">SIPRELI</span>
                         </div>
                         <h1 class="text-4xl md:text-6xl lg:text-7xl font-extrabold tracking-tight mb-6 leading-tight drop-shadow-xl">
                             Los préstamos son más <br class="hidden md:block">
@@ -137,7 +139,7 @@
 
             @endif
 
-            <!-- 3. FOOTER INTEGRADO (Con tu correo personalizado) -->
+            <!-- 3. FOOTER INTEGRADO -->
             <div class="bg-slate-600">
                 <footer class="bg-slate-600 text-white border-t border-slate-500">
                     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
@@ -176,7 +178,6 @@
                             <p class="text-xs text-gray-300">
                                 &copy; {{ date('Y') }} Universidad Politécnica de Bacalar. All rights reserved.
                             </p>
-                            <!-- Tu enlace personalizado -->
                             <a href="mailto:julio.cen@upb.edu.mx" class="hover:scale-110 transition-transform duration-200 group">
                                 <div class="bg-white p-1.5 rounded-full shadow-md">
                                     <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">

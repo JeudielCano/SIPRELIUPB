@@ -7,7 +7,8 @@ use App\Models\LoanItem;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
-
+use App\Notifications\LoanApproved;
+use App\Notifications\LoanRejected;
 class AdminLoanController extends Controller
 {
     /**
@@ -112,18 +113,26 @@ class AdminLoanController extends Controller
             'pickup_code' => $code,
         ]);
 
+        //notificacion de aceptación
+        $loan->user->notify(new LoanApproved($loan));
+
         return back()->with('status', 'Solicitud aprobada. Código de retiro generado: ' . $code);
     }
 
-    public function reject(LoanRequest $loan)
+    public function reject(Request $request, LoanRequest $loan)
     {
-        if (auth()->user()->role !== 'administrador') abort(403);
-        
-        $loan->update([
-            'status' => 'rechazado',
-            'approved_by_id' => auth()->id()
+        $request->validate([
+            'reason' => 'nullable|string|max:300',
         ]);
-        
+
+        $loan->update([
+            'status'         => 'rechazado',
+            'approved_by_id' => auth()->id(),
+        ]);
+
+        $reason = $request->reason ?? 'No se especificó un motivo.';
+        $loan->user->notify(new LoanRejected($loan, $reason));
+
         return back()->with('status', 'Solicitud rechazada.');
     }
 

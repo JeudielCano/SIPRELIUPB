@@ -14,42 +14,34 @@ class CatalogController extends Controller
      */
     public function index(Request $request)
     {
-        // Capturamos la fecha de filtro si existe
-        $filterDate = $request->input('date');
+        // 1. Capturamos la palabra que el usuario escribió en el buscador
+        $search = $request->input('search');
 
-        // 1. Obtenemos todos los recursos activos
-        $resources = Resource::where('status', '!=', 'mantenimiento')->get();
+        // 2. Preparamos las consultas base para cada tipo
+        $queryEquipo = Resource::where('type', 'equipo');
+        $queryLab = Resource::where('type', 'laboratorio');
+        $queryInsumo = Resource::where('type', 'insumo');
 
-        // 2. Calculamos el stock real disponible para cada uno
-        $resources->transform(function ($resource) use ($filterDate) {
-            
-            // Consultamos los ítems reservados/prestados
-            $reservedCount = LoanItem::where('resource_id', $resource->id)
-                ->whereHas('loanRequest', function ($q) use ($filterDate) {
-                    // Solo consideramos solicitudes Aprobadas o Activas (las pendientes no bloquean stock aun)
-                    $q->whereIn('status', ['aprobado', 'activo']);
+        // 3. Si hay una búsqueda, aplicamos el filtro a todas las consultas
+        if ($search) {
+            $filtro = function($q) use ($search) {
+                $q->where('name', 'LIKE', "%{$search}%")
+                ->orWhere('description', 'LIKE', "%{$search}%");
+            };
 
-                    // SI HAY FILTRO DE FECHA: Verificamos si choca con esa fecha
-                    if ($filterDate) {
-                        $date = Carbon::parse($filterDate);
-                        // Lógica de Solapamiento:
-                        // El préstamo inicia ANTES o IGUAL a la fecha filtro
-                        // Y termina DESPUÉS o IGUAL a la fecha filtro
-                        $q->whereDate('pickup_at', '<=', $date)
-                          ->whereDate('due_at', '>=', $date);
-                    }
-                })
-                ->sum('quantity');
-            
-            // Stock Físico - Reservado = Disponible
-            $resource->available_count = max(0, $resource->total_stock - $reservedCount);
-            
-            return $resource;
-        });
+            $queryEquipo->where($filtro);
+            $queryLab->where($filtro);
+            $queryInsumo->where($filtro);
+        }
 
-        // 3. Agrupamos los recursos por su tipo
-        $groupedResources = $resources->groupBy('type');
+        // 4. Ejecutamos la paginación 
+        // Usamos appends() para que al cambiar de página, no se borre la búsqueda
+        $groupedResources = [
+            'equipo' => $queryEquipo->paginate(10, ['*'], 'equipos_page')->appends($request->all()),
+            'laboratorio' => $queryLab->paginate(10, ['*'], 'lab_page')->appends($request->all()),
+            'insumo' => $queryInsumo->paginate(10, ['*'], 'insumo_page')->appends($request->all()),
+        ];
 
-        return view('catalog.index', compact('groupedResources', 'filterDate'));
+        return view('catalog.index', compact('groupedResources'));
     }
 }

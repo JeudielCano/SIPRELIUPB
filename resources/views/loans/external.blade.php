@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Nueva Solicitud de Préstamo') }}
+            {{ __('Nueva Solicitud de Préstamo Externa') }}
         </h2>
     </x-slot>
 
@@ -97,16 +97,16 @@
 
 
                         </div>
-                                                    <!-- boton agregar -->
-                            <div x-show="selectedResourceName" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center" style="display: none;">
-                                <div>
-                                    <span class="text-xs text-blue-600 uppercase font-bold">Listo para agregar:</span>
-                                    <div class="font-bold text-gray-900" x-text="selectedResourceName"></div>
-                                </div>
-                                <button type="button" @click="addItem()" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform active:scale-95">
-                                    Agregar a la Lista ⬇
-                                </button>
+                            <!-- boton agregar -->
+                        <div x-show="selectedResourceName" class="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex justify-between items-center" style="display: none;">
+                            <div>
+                                <span class="text-xs text-blue-600 uppercase font-bold">Listo para agregar:</span>
+                                <div class="font-bold text-gray-900" x-text="selectedResourceName"></div>
                             </div>
+                            <button type="button" @click="addItem()" class="text-white bg-blue-700 hover:bg-blue-800 font-medium rounded-lg text-sm px-5 py-2.5 transition-transform active:scale-95">
+                                Agregar a la Lista ⬇
+                            </button>
+                        </div>
 
 
 
@@ -231,23 +231,28 @@
                             </div>
                         </div>
 
-                        <!-- Documento obligatorio -->
-                        <div class="mb-6 flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200">
-                            <div>
-                                <h5 class="font-bold text-gray-800">Permiso Obligatorio</h5>
-                                <p class="text-xs text-gray-500">Debes descargar, firmar y presentar este documento.</p>
-                            </div>
-                            <a href="{{ route('loans.external.permit') }}" target="_blank" class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                Descargar Permiso PDF
-                            </a>
-                        </div>
-
                         <!-- Observaciones -->
                         <div class="mb-6">
                             <label for="observations" class="block mb-2 text-sm font-medium text-gray-900">Observaciones</label>
                             <textarea id="observations" name="observations" rows="3" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500" placeholder="Escribe aquí cualquier detalle adicional..."></textarea>
                         </div>
+
+
+                        <!-- Documento obligatorio -->
+                        <div class="mb-6 flex items-center justify-between bg-gray-50 p-4 rounded-lg border border-gray-200">
+                            <div>
+                                <h5 class="font-bold text-gray-800">Permiso Obligatorio</h5>
+                                <p class="text-xs text-gray-500">Descarga el permiso con los datos de tu solicitud, fírmalo y preséntalo.</p>
+                            </div>
+                            <button type="button" @click="downloadPermit()"
+                                class="text-gray-900 bg-white border border-gray-300 hover:bg-gray-100 font-medium rounded-lg text-sm px-5 py-2.5 flex items-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                </svg>
+                                Descargar Permiso PDF
+                            </button>
+                        </div>
+
 
                         <!-- Input Oculto JSON -->
                         <input type="hidden" name="selected_items" :value="JSON.stringify(items)">
@@ -272,102 +277,7 @@
 
 
 <!--
-    <script>
-        function loanForm() {
-            return {
-                allResources: @json($resources),
-                resourceTypeFilter: '', searchQuery: '', showDropdown: false,
-                selectedResourceId: '', selectedResourceName: '', selectedResourceStock: 0, quantity: 1,
-                items: [],
-                
-                pickupDate: '',
-                dueDate: '',
-                datesValid: false,
-                dateError: '',
 
-                // ... (mismos métodos de filtro y selección que el anterior) ...
-                get filteredResources() {
-                    if (this.searchQuery === '') return [];
-                    return this.allResources.filter(r => {
-                        const typeMatch = this.resourceTypeFilter === '' || r.type === this.resourceTypeFilter;
-                        const textMatch = r.name.toLowerCase().includes(this.searchQuery.toLowerCase());
-                        return typeMatch && textMatch;
-                    });
-                },
-                selectResource(r) { this.selectedResourceId = r.id; this.selectedResourceName = r.name; this.selectedResourceStock = r.total_stock; this.searchQuery = ''; this.showDropdown = false; },
-                addItem() {
-                    if (!this.selectedResourceId) return;
-                    
-                    // Validar stock
-                    if (this.quantity > this.selectedResourceStock) {
-                        alert(`Solo hay ${this.selectedResourceStock} unidades disponibles.`);
-                        return;
-                    }
-                    // Validar duplicados
-                    if (this.items.some(i => i.id == this.selectedResourceId)) {
-                        alert('Este recurso ya está en tu lista.');
-                        return;
-                    }
-                    
-                    this.items.push({
-                        id: this.selectedResourceId,
-                        name: this.selectedResourceName,
-                        quantity: this.quantity
-                    });
-                    this.resetSelection();
-                },
-                removeItem(i) { this.items.splice(i, 1); },
-                resetSearch() { this.searchQuery = ''; },
-
-                // LÓGICA DE FECHAS ACTUALIZADA (MAX 4 DÍAS)
-                validateDates() {
-                    this.dateError = '';
-                    this.datesValid = false;
-
-                    if (!this.pickupDate || !this.dueDate) return;
-
-                    const pickup = new Date(this.pickupDate);
-                    const due = new Date(this.dueDate);
-                    const now = new Date();
-
-                    if (pickup < now) {
-                        this.dateError = 'La fecha de retiro debe ser futura.';
-                        return;
-                    }
-
-                    if (due <= pickup) {
-                        this.dateError = 'La fecha de devolución debe ser posterior al retiro.';
-                        return;
-                    }
-
-                    // Diferencia en milisegundos -> días
-                    const diffTime = Math.abs(due - pickup);
-                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-
-                    if (diffDays > 4) {
-                        this.dateError = 'El préstamo externo no puede durar más de 4 días.';
-                        return;
-                    }
-
-                    this.datesValid = true;
-                },
-                
-                resetSelection() {
-                    this.selectedResourceId = '';
-                    this.selectedResourceName = '';
-                    this.selectedResourceStock = 0;
-                    this.quantity = 1;
-                },
-
-                submitForm(e) {
-                    this.validateDates();
-                    if (this.items.length > 0 && this.datesValid) {
-                        e.target.submit();
-                    }
-                }
-            }
-        }
-    </script>
 
 -->
     <!-- Script Alpine.js -->
@@ -518,8 +428,51 @@
                     }
                     
                     e.target.submit();
+                },
+
+                //Metodo para agregar los datos al PDF descargable
+
+                downloadPermit() {
+                    // Construimos un formulario temporal con los datos actuales
+                    const form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ route("loans.external.permit") }}';
+                    form.target = '_blank'; // Abre en nueva pestaña para descarga
+
+                    // Token CSRF
+                    const csrf = document.createElement('input');
+                    csrf.type = 'hidden';
+                    csrf.name = '_token';
+                    csrf.value = '{{ csrf_token() }}';
+                    form.appendChild(csrf);
+
+                    // Datos del formulario
+                    const fields = {
+                        selected_items: JSON.stringify(this.items),
+                        pickup_at:      this.pickupDate,
+                        due_at:         this.dueDate,
+                        activity_type_id: document.getElementById('activity_type_id').value,
+                        subject_id:     document.getElementById('subject_id').value,
+                        observations:   document.getElementById('observations').value,
+                    };
+
+                    Object.entries(fields).forEach(([name, value]) => {
+                        const input = document.createElement('input');
+                        input.type  = 'hidden';
+                        input.name  = name;
+                        input.value = value ?? '';
+                        form.appendChild(input);
+                    });
+
+                    document.body.appendChild(form);
+                    form.submit();
+                    document.body.removeChild(form);
                 }
+
+
             }
+
+
         }
     </script>
 

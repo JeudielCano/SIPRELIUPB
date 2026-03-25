@@ -9,6 +9,8 @@ use Illuminate\Notifications\Notifiable;
 
 class User extends Authenticatable
 {
+    // para mostrar notificaciones.
+    use HasFactory, Notifiable;
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasFactory, Notifiable;
 
@@ -50,4 +52,19 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    // Recursos que este usuario tiene asignados como subresguardante
+    public function guardianResources()
+    {
+        return $this->hasMany(ResourceGuardian::class);
+    }
+
+    // Verificar rápidamente si es subresguardante
+    public function isGuardian(): bool
+    {
+        return $this->applicant_type === 'docente' 
+            && $this->guardianResources()->exists();
+    }
+
 }
+

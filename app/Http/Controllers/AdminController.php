@@ -65,11 +65,21 @@ class AdminController extends Controller
     /**
      * Muestra la lista de Usuarios para gestionar aprobaciones.
      */
-    public function users(): View
+    public function users(Request $request)
     {
-        if (auth()->user()->role !== 'administrador') abort(403);
+        // Capturamos la búsqueda
+        $search = $request->input('search');
 
-        $users = User::all();
+        // Construimos la consulta
+        $users = \App\Models\User::when($search, function ($query, $search) {
+                $query->where('name', 'LIKE', "%{$search}%")
+                    ->orWhere('email', 'LIKE', "%{$search}%")
+                    ->orWhere('student_id', 'LIKE', "%{$search}%"); // Busca también por matrícula
+            })
+            ->orderBy('created_at', 'desc') // Ordena los más recientes primero
+            ->paginate(10) // 10 usuarios por página
+            ->appends($request->all()); // Mantiene la búsqueda al cambiar de página
+
         return view('admin.users.index', compact('users'));
     }
 

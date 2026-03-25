@@ -10,6 +10,9 @@ use App\Models\Resource;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use App\Models\User;
+use App\Notifications\NewLoanRequest;
+
 
 class ExternalLoanController extends Controller
 {
@@ -107,6 +110,8 @@ public function create()
             }
         }
 
+        $userId = auth()->id();
+
         DB::transaction(function () use ($validated, $items) {
             // Creamos la solicitud con un indicador especial o simplemente por el contexto
             // Nota: Podrías agregar un campo 'type' a loan_requests si necesitas distinguir interno/externo en BD,
@@ -119,7 +124,7 @@ public function create()
                 'status'           => 'pendiente',
                 'pickup_at'        => $validated['pickup_at'],
                 'due_at'           => $validated['due_at'],
-                'observations'     => $validated['observations'] . " (SOLICITUD EXTERNA)", // Marcamos en observaciones
+                'observations' => ($validated['observations'] ?? '') . ' (SOLICITUD EXTERNA)', // Marcamos en observaciones
             ]);
 
             foreach ($items as $itemData) {
@@ -129,6 +134,12 @@ public function create()
                     'quantity'        => $itemData['quantity'],
                 ]);
             }
+
+            // ← LÍNEA NUEVA: notificar a todos los administradores
+            $admins = User::where('role', 'administrador')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new NewLoanRequest($loan));
+            }
         });
 
         return redirect()->route('loans.index')->with('status', 'Solicitud externa enviada. No olvides entregar tu permiso firmado.');
@@ -137,9 +148,92 @@ public function create()
     /**
      * Descarga el formato de permiso.
      */
-    public function downloadPermit()
+    public function downloadPermit(Request $request)
     {
-        // Lógica futura: return Storage::download('formatos/permiso_externo.pdf');
-        return back()->with('status', 'El formato de permiso aún no está cargado en el sistema.');
+        $user = auth()->user();
+        $fecha = now()->format('d/m/Y');
+
+        // Datos del formulario
+        $items      = json_decode($request->selected_items ?? '[]', true);
+        $pickup_at  = $request->pickup_at  ? \Carbon\Carbon::parse($request->pickup_at)->format('d/m/Y H:i') : null;
+        $due_at     = $request->due_at     ? \Carbon\Carbon::parse($request->due_at)->format('d/m/Y H:i') : null;
+        $observations = $request->observations;
+
+        // Resolvemos nombres de actividad y asignatura
+        $activityType = $request->activity_type_id
+            ? \App\Models\ActivityType::find($request->activity_type_id)?->name
+            : null;
+
+        $subject = $request->subject_id
+            ? \App\Models\Subject::find($request->subject_id)?->name
+            : null;
+
+        // Resolvemos nombres de recursos
+        $resources = [];
+        foreach ($items as $item) {
+            $resource = \App\Models\Resource::find($item['id']);
+            if ($resource) {
+                $resources[] = $resource->name . ' (x' . $item['quantity'] . ')';
+            }
+        }
+
+        // --- 1. PARA EL LOGOTIPO ---
+        $logoPath = public_path('images/logo2-upb.png');
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+        // --- PARA EL LOGOTIPO ---
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('loans.permit_pdf', compact(
+            'user', 'fecha', 'resources', 'pickup_at', 'due_at',
+            'activityType', 'subject', 'observations',
+            'logoBase64' // <-- Importante pasar esta variable para generar el logo
+        ))->setPaper('letter', 'portrait');
+
+        return $pdf->download('permiso-prestamo-externo-' . now()->format('Y-m-d') . '.pdf');
+    }
+
+    public function downloadPermitFromLoan(\App\Models\LoanRequest $loan)
+    {
+        // Solo el dueño del préstamo puede descargarlo
+        if ($loan->user_id !== auth()->id()) abort(403);
+
+        $user   = $loan->user;
+        $fecha  = now()->format('d/m/Y');
+
+        $resources = $loan->items->map(function ($item) {
+            return $item->resource->name . ' (x' . $item->quantity . ')';
+        })->toArray();
+
+        $pickup_at    = $loan->pickup_at->format('d/m/Y H:i');
+        $due_at       = $loan->due_at->format('d/m/Y H:i');
+        $activityType = $loan->activityType->name;
+        $subject      = $loan->subject->name;
+        $observations = $loan->observations
+            ? str_replace('(SOLICITUD EXTERNA)', '', $loan->observations)
+            : null;
+
+        // --- 1. PARA EL LOGOTIPO ---
+        $logoPath = public_path('images/logo2-upb.png');
+        $logoBase64 = null;
+
+        if (file_exists($logoPath)) {
+            $logoData = file_get_contents($logoPath);
+            $logoType = pathinfo($logoPath, PATHINFO_EXTENSION);
+            $logoBase64 = 'data:image/' . $logoType . ';base64,' . base64_encode($logoData);
+        }
+        // --- PARA EL LOGOTIPO ---
+
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('loans.permit_pdf', compact(
+            'user', 'fecha', 'resources', 'pickup_at', 'due_at',
+            'activityType', 'subject', 'observations',
+            'logoBase64' // <-- Importante pasar esta variable para generar el logo
+        ))->setPaper('letter', 'portrait');
+
+        return $pdf->download('permiso-prestamo-' . $loan->id . '.pdf');
     }
 }

@@ -14,6 +14,8 @@
                     ✅ Perfil actualizado correctamente.
                 </div>
             @endif
+
+            {{-- Modificar la actualizacion de contraseñas  --}}
             @if(session('status') === 'password-updated')
                 <div class="mb-4 p-4 text-sm text-green-800 rounded-lg bg-green-50 border border-green-200">
                     ✅ Contraseña actualizada correctamente.
@@ -88,6 +90,25 @@
                                     <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
                                 @enderror
                             </div>
+
+                            {{-- Matrícula (Solo Alumnos) --}}
+                            @if(Auth::user()->applicant_type === 'alumno')
+                                <div class="mt-4">
+                                    <label for="student_id" class="block text-sm font-medium text-gray-700 mb-1">Matrícula</label>
+                                    <input type="text" 
+                                        id="student_id" 
+                                        name="student_id"
+                                        {{-- Muestra la matrícula actual de la DB o lo que el usuario escribió si hubo error --}}
+                                        value="{{ old('student_id', Auth::user()->student_id) }}"
+                                        {{-- Placeholder dinámico: si no hay matrícula, invita a ingresarla --}}
+                                        placeholder="{{ Auth::user()->student_id ? 'Editar matrícula actual' : 'Ingresa tu matrícula' }}"
+                                        class="w-full border border-gray-300 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-300 focus:border-blue-400">
+                                    
+                                    @error('student_id')
+                                        <p class="text-xs text-red-600 mt-1">{{ $message }}</p>
+                                    @enderror
+                                </div>
+                            @endif
 
                             <div class="flex justify-end pt-2">
                                 <button type="submit"

@@ -24,7 +24,7 @@ use App\Http\Controllers\GuardianController;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome'); // <--- nombre para redireccionar al inicio.
 
 // Dashboard del Solicitante (usuario normal)
 Route::get('/dashboard', function () {

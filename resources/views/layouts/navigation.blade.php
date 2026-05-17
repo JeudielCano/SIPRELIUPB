@@ -118,9 +118,9 @@
                 </x-responsive-nav-link>
 
                 <!-- Authentication -->
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('welcome') }}">
                     @csrf
-                    <x-responsive-nav-link :href="route('logout')"
+                    <x-responsive-nav-link :href="route('welcome')"
                             onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Cerrar Sesión') }}
